@@ -1,0 +1,272 @@
+<html>
+<head>
+    <title>Spam SMS Detector</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Fredoka+One&family=Space+Grotesk:wght@400;700&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Space Grotesk', sans-serif;
+            background: #f5f5dc;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            background: #ffffff;
+            border: 4px solid #000;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 600px;
+            width: 100%;
+            box-shadow: 8px 8px 0 #000;
+            position: relative;
+        }
+
+        h1 {
+            font-family: 'Fredoka One', cursive;
+            font-size: 2.2rem;
+            color: #000;
+            text-shadow: 4px 4px 0 #ff6b6b;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .subtitle {
+            text-align: center;
+            font-weight: 700;
+            font-size: 1rem;
+            margin-bottom: 30px;
+            color: #333;
+            background: #ffd93d;
+            display: inline-block;
+            padding: 5px 20px;
+            border: 3px solid #000;
+            transform: rotate(-2deg);
+            margin-left: auto;
+            margin-right: auto;
+            display: table;
+        }
+
+        textarea {
+            width: 100%;
+            padding: 15px;
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 1rem;
+            border: 4px solid #000;
+            border-radius: 12px;
+            resize: vertical;
+            min-height: 120px;
+            background: #fafafa;
+            outline: none;
+            transition: 0.2s;
+        }
+
+        textarea:focus {
+            background: #fff;
+            box-shadow: inset 0 0 0 2px #ff6b6b;
+        }
+
+        .predict-btn {
+            display: block;
+            width: 100%;
+            padding: 16px;
+            margin-top: 20px;
+            font-family: 'Fredoka One', cursive;
+            font-size: 1.4rem;
+            background: #ff6b6b;
+            color: #fff;
+            border: 4px solid #000;
+            border-radius: 14px;
+            cursor: pointer;
+            box-shadow: 5px 5px 0 #000;
+            transition: 0.08s linear;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .predict-btn:active {
+            transform: translate(4px, 4px);
+            box-shadow: 1px 1px 0 #000;
+        }
+
+        .predict-btn:hover {
+            background: #ff5252;
+        }
+
+        .result-box {
+            margin-top: 30px;
+            padding: 20px;
+            border: 4px solid #000;
+            border-radius: 14px;
+            background: #fafafa;
+            display: none;
+        }
+
+        .result-box.visible {
+            display: block;
+        }
+
+        .result-label {
+            font-family: 'Fredoka One', cursive;
+            font-size: 2rem;
+            text-align: center;
+            margin-bottom: 8px;
+        }
+
+        .result-label.spam {
+            color: #ff0000;
+            text-shadow: 3px 3px 0 #000;
+        }
+
+        .result-label.ham {
+            color: #2ecc71;
+            text-shadow: 3px 3px 0 #000;
+        }
+
+        .confidence-bar {
+            margin-top: 12px;
+            background: #e0e0e0;
+            border: 3px solid #000;
+            border-radius: 10px;
+            height: 30px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .confidence-fill {
+            height: 100%;
+            border-radius: 8px;
+            transition: width 0.5s ease;
+            background: #ff6b6b;
+        }
+
+        .confidence-fill.ham {
+            background: #2ecc71;
+        }
+
+        .confidence-text {
+            text-align: center;
+            font-weight: 700;
+            margin-top: 6px;
+            font-size: 1.2rem;
+        }
+
+        .error {
+            margin-top: 20px;
+            padding: 12px;
+            background: #ffcccc;
+            border: 3px solid #ff0000;
+            border-radius: 10px;
+            text-align: center;
+            font-weight: 700;
+            display: none;
+        }
+
+        .loading {
+            text-align: center;
+            margin-top: 20px;
+            font-weight: 700;
+            display: none;
+        }
+
+        .loading.visible {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📨 Spam SMS Detector</h1>
+        <div class="subtitle">Is it spam or not?</div>
+
+        <textarea id="message" placeholder="Type or paste your SMS message here..."></textarea>
+        <button class="predict-btn" onclick="predict()">🔍 Detect</button>
+
+        <div class="loading" id="loading">Analyzing...</div>
+
+        <div class="result-box" id="resultBox">
+            <div class="result-label" id="resultLabel"></div>
+            <div class="confidence-bar">
+                <div class="confidence-fill" id="confidenceFill" style="width: 0%"></div>
+            </div>
+            <div class="confidence-text" id="confidenceText"></div>
+        </div>
+
+        <div class="error" id="error"></div>
+    </div>
+
+    <script>
+        async function predict() {
+            const message = document.getElementById('message').value.trim();
+            const resultBox = document.getElementById('resultBox');
+            const loading = document.getElementById('loading');
+            const error = document.getElementById('error');
+
+            resultBox.classList.remove('visible');
+            error.style.display = 'none';
+
+            if (!message) {
+                error.textContent = '⚠️ Please enter a message!';
+                error.style.display = 'block';
+                return;
+            }
+
+            loading.classList.add('visible');
+
+            try {
+                const formData = new FormData();
+                formData.append('message', message);
+
+                const response = await fetch('/predict', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                loading.classList.remove('visible');
+                resultBox.classList.add('visible');
+
+                const label = document.getElementById('resultLabel');
+                const fill = document.getElementById('confidenceFill');
+                const text = document.getElementById('confidenceText');
+
+                const isSpam = data.prediction === 'spam';
+
+                label.textContent = isSpam ? '🚫 SPAM' : '✅ HAM (Not Spam)';
+                label.className = 'result-label ' + (isSpam ? 'spam' : 'ham');
+
+                fill.style.width = data.confidence + '%';
+                fill.className = 'confidence-fill ' + (isSpam ? '' : 'ham');
+
+                text.textContent = isSpam
+                    ? `Spam probability: ${data.confidence}%`
+                    : `Ham probability: ${data.confidence}%`;
+
+            } catch (err) {
+                loading.classList.remove('visible');
+                error.textContent = '❌ Error: Could not reach server.';
+                error.style.display = 'block';
+            }
+        }
+
+        // Allow Enter to submit
+        document.getElementById('message').addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                predict();
+            }
+        });
+    </script>
+</body>
+</html>
