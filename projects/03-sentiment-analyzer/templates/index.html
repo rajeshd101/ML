@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>😃 Sentiment Analyzer</title>
+    <style>
+        /* Cartoon Brutalist Style */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            font-family: 'Comic Sans MS', 'Chalkboard SE', 'Marker Felt', sans-serif;
+            background: #f3e5f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+        .card {
+            background: #b39ddb;
+            border: 5px solid #222;
+            border-radius: 20px;
+            padding: 40px 35px;
+            max-width: 550px;
+            width: 100%;
+            box-shadow: 12px 12px 0 #222;
+        }
+        h1 {
+            font-size: 2.4rem;
+            color: #222;
+            text-align: center;
+            margin-bottom: 10px;
+            text-shadow: 4px 4px 0 rgba(0,0,0,0.1);
+            letter-spacing: -0.5px;
+        }
+        .subtitle {
+            text-align: center;
+            font-size: 1rem;
+            color: #333;
+            margin-bottom: 25px;
+            font-weight: bold;
+        }
+        textarea {
+            width: 100%;
+            padding: 15px;
+            font-size: 1.1rem;
+            font-family: inherit;
+            border: 4px solid #222;
+            border-radius: 12px;
+            background: #fff;
+            resize: vertical;
+            min-height: 120px;
+            margin-bottom: 20px;
+            box-shadow: inset 3px 3px 0 #ccc;
+        }
+        textarea:focus {
+            outline: none;
+            border-color: #e63946;
+        }
+        .btn {
+            display: block;
+            width: 100%;
+            padding: 16px;
+            font-size: 1.4rem;
+            font-family: inherit;
+            font-weight: bold;
+            background: #e63946;
+            color: #fff;
+            border: 4px solid #222;
+            border-radius: 14px;
+            cursor: pointer;
+            box-shadow: 6px 6px 0 #222;
+            transition: all 0.06s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .btn:active {
+            transform: translate(4px, 4px);
+            box-shadow: 2px 2px 0 #222;
+        }
+        .btn:hover {
+            background: #d62839;
+        }
+        #result {
+            margin-top: 25px;
+            padding: 20px;
+            border: 4px solid #222;
+            border-radius: 14px;
+            background: #fff;
+            text-align: center;
+            font-size: 1.3rem;
+            font-weight: bold;
+            box-shadow: 6px 6px 0 #222;
+            display: none;
+        }
+        #result .label {
+            font-size: 1.8rem;
+        }
+        #result .label.positive {
+            color: #2a9d8f;
+        }
+        #result .label.negative {
+            color: #e63946;
+        }
+        #result .confidence {
+            font-size: 1.2rem;
+            color: #333;
+            margin-top: 8px;
+        }
+        .result-emoji {
+            font-size: 3rem;
+            display: block;
+            margin-bottom: 8px;
+        }
+        .error {
+            color: #e63946;
+            text-align: center;
+            margin-top: 10px;
+            font-weight: bold;
+            display: none;
+        }
+        .spinner {
+            display: none;
+            text-align: center;
+            margin-top: 15px;
+            font-size: 2rem;
+        }
+        @media (max-width: 480px) {
+            .card { padding: 25px 20px; }
+            h1 { font-size: 1.8rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h1>😃 Sentiment Analyzer</h1>
+        <p class="subtitle">Enter text to analyze its sentiment</p>
+        <textarea id="textInput" placeholder="Enter a sentence or paragraph..."></textarea>
+        <button class="btn" id="predictBtn">🔍 Analyze Sentiment</button>
+        <div class="spinner" id="spinner">⏳</div>
+        <div id="result">
+            <span class="result-emoji" id="emoji"></span>
+            <div class="label" id="resultLabel"></div>
+            <div class="confidence" id="resultConfidence"></div>
+        </div>
+        <div class="error" id="error">Something went wrong. Try again.</div>
+    </div>
+
+    <script>
+        const btn = document.getElementById('predictBtn');
+        const textInput = document.getElementById('textInput');
+        const result = document.getElementById('result');
+        const label = document.getElementById('resultLabel');
+        const confidence = document.getElementById('resultConfidence');
+        const emoji = document.getElementById('emoji');
+        const error = document.getElementById('error');
+        const spinner = document.getElementById('spinner');
+
+        btn.addEventListener('click', async () => {
+            error.style.display = 'none';
+            result.style.display = 'none';
+            spinner.style.display = 'block';
+            btn.disabled = true;
+
+            try {
+                const formData = new FormData();
+                formData.append('text', textInput.value);
+                const res = await fetch('/predict', { method: 'POST', body: formData });
+                const data = await res.json();
+
+                if (data.prediction === 'Positive') {
+                    label.textContent = 'Positive Sentiment';
+                    label.className = 'label positive';
+                    emoji.textContent = '😊';
+                } else {
+                    label.textContent = 'Negative Sentiment';
+                    label.className = 'label negative';
+                    emoji.textContent = '😞';
+                }
+                confidence.textContent = `Confidence: ${data.confidence}%`;
+                result.style.display = 'block';
+            } catch (e) {
+                error.style.display = 'block';
+            } finally {
+                spinner.style.display = 'none';
+                btn.disabled = false;
+            }
+        });
+
+        textInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && e.ctrlKey) btn.click();
+        });
+    </script>
+</body>
+</html>
