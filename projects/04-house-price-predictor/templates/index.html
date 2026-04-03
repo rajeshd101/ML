@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🏠 House Price Predictor</title>
+    <style>
+        /* Cartoon Brutalist Style */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            font-family: 'Impact', 'Arial Black', 'Franklin Gothic Heavy', sans-serif;
+            background: #FFF3E0;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            padding: 40px 20px;
+        }
+        .container {
+            max-width: 700px;
+            width: 100%;
+            background: #FF8A65;
+            border: 6px solid #222;
+            border-radius: 20px;
+            padding: 40px 35px;
+            box-shadow: 12px 12px 0 #222;
+            position: relative;
+        }
+        h1 {
+            font-size: 2.5rem;
+            color: #222;
+            text-align: center;
+            margin-bottom: 30px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            text-shadow: 4px 4px 0 #FFB74D;
+            line-height: 1.2;
+        }
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+        .form-group {
+            background: #FFB74D;
+            border: 4px solid #222;
+            border-radius: 12px;
+            padding: 12px 14px;
+            box-shadow: 5px 5px 0 #222;
+        }
+        .form-group label {
+            display: block;
+            font-size: 0.85rem;
+            font-weight: bold;
+            color: #222;
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 10px 12px;
+            font-size: 1rem;
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            border: 4px solid #222;
+            border-radius: 8px;
+            background: #FFF;
+            color: #222;
+            outline: none;
+            transition: transform 0.1s;
+        }
+        .form-group input:focus {
+            transform: scale(1.02);
+            background: #FFF8E1;
+        }
+        .full-width {
+            grid-column: 1 / -1;
+        }
+        .btn-predict {
+            width: 100%;
+            padding: 18px;
+            font-size: 1.5rem;
+            font-family: 'Impact', 'Arial Black', sans-serif;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            background: #FF6D00;
+            color: #FFF;
+            border: 5px solid #222;
+            border-radius: 14px;
+            cursor: pointer;
+            box-shadow: 8px 8px 0 #222;
+            transition: all 0.08s linear;
+            margin-bottom: 25px;
+        }
+        .btn-predict:hover {
+            background: #E65100;
+            transform: translate(2px, 2px);
+            box-shadow: 6px 6px 0 #222;
+        }
+        .btn-predict:active {
+            transform: translate(6px, 6px);
+            box-shadow: 2px 2px 0 #222;
+        }
+        .result-box {
+            background: #FFB74D;
+            border: 5px solid #222;
+            border-radius: 14px;
+            padding: 25px 20px;
+            box-shadow: 8px 8px 0 #222;
+            text-align: center;
+            display: none;
+        }
+        .result-box.show {
+            display: block;
+        }
+        .result-box h2 {
+            font-size: 1.3rem;
+            color: #222;
+            text-transform: uppercase;
+            margin-bottom: 5px;
+        }
+        .result-price {
+            font-size: 3rem;
+            font-weight: bold;
+            color: #222;
+            background: #FFF;
+            display: inline-block;
+            padding: 10px 30px;
+            border: 4px solid #222;
+            border-radius: 12px;
+            margin-top: 10px;
+        }
+        .error-box {
+            background: #FF5252;
+            border: 5px solid #222;
+            border-radius: 14px;
+            padding: 20px;
+            box-shadow: 8px 8px 0 #222;
+            text-align: center;
+            display: none;
+            margin-top: 15px;
+        }
+        .error-box.show {
+            display: block;
+        }
+        .error-box p {
+            font-size: 1.2rem;
+            color: #FFF;
+            font-weight: bold;
+        }
+        .spinner {
+            display: inline-block;
+            width: 30px;
+            height: 30px;
+            border: 5px solid #222;
+            border-top-color: #FF6D00;
+            border-radius: 50%;
+            animation: spin 0.6s linear infinite;
+            margin: 10px auto;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        .footer-note {
+            margin-top: 25px;
+            text-align: center;
+            font-size: 0.85rem;
+            color: #222;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            opacity: 0.7;
+        }
+        @media (max-width: 600px) {
+            .container { padding: 25px 20px; }
+            h1 { font-size: 1.8rem; }
+            .form-grid { grid-template-columns: 1fr; }
+            .result-price { font-size: 2rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🏠 House Price<br>Predictor</h1>
+        
+        <form id="predictForm">
+            <div class="form-grid">
+                {% for feat in features %}
+                <div class="form-group">
+                    <label for="{{ feat }}">{{ display_names[feat] }}</label>
+                    <input type="number" id="{{ feat }}" name="{{ feat }}" 
+                           step="any" value="{{ defaults[feat] }}" required>
+                </div>
+                {% endfor %}
+            </div>
+            
+            <button type="submit" class="btn-predict" id="predictBtn">
+                🔮 Predict Price
+            </button>
+        </form>
+        
+        <div id="loading" style="display: none; text-align: center;">
+            <div class="spinner"></div>
+            <p style="font-weight: bold; margin-top: 8px;">CALCULATING...</p>
+        </div>
+        
+        <div class="result-box" id="resultBox">
+            <h2>💰 Estimated House Value</h2>
+            <div class="result-price" id="priceDisplay">$0.00</div>
+        </div>
+        
+        <div class="error-box" id="errorBox">
+            <p>⚠️ <span id="errorMessage">Something went wrong!</span></p>
+        </div>
+        
+        <div class="footer-note">
+            Based on California housing market data
+        </div>
+    </div>
+
+    <script>
+        const form = document.getElementById('predictForm');
+        const predictBtn = document.getElementById('predictBtn');
+        const loading = document.getElementById('loading');
+        const resultBox = document.getElementById('resultBox');
+        const priceDisplay = document.getElementById('priceDisplay');
+        const errorBox = document.getElementById('errorBox');
+        const errorMessage = document.getElementById('errorMessage');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            // Collect form data
+            const formData = new FormData(form);
+            const data = {};
+            formData.forEach((value, key) => {
+                data[key] = value;
+            });
+            
+            // Show loading, hide results
+            loading.style.display = 'block';
+            resultBox.classList.remove('show');
+            errorBox.classList.remove('show');
+            predictBtn.disabled = true;
+            predictBtn.textContent = 'Predicting...';
+            
+            try {
+                const response = await fetch('/predict', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+                
+                const result = await response.json();
+                
+                // Show result
+                loading.style.display = 'none';
+                priceDisplay.textContent = result.price_formatted;
+                resultBox.classList.add('show');
+            } catch (err) {
+                loading.style.display = 'none';
+                errorMessage.textContent = err.message || 'Failed to get prediction';
+                errorBox.classList.add('show');
+            } finally {
+                predictBtn.disabled = false;
+                predictBtn.textContent = '🔮 Predict Price';
+            }
+        });
+    </script>
+</body>
+</html>
