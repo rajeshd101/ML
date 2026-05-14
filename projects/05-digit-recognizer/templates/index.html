@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🔢 Handwritten Digit Recognizer</title>
+    <style>
+        /* Cartoon Brutalist Style */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            font-family: 'Impact', 'Arial Black', 'Franklin Gothic Heavy', sans-serif;
+            background: #E0F2F1;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            padding: 40px 20px;
+        }
+        .container {
+            max-width: 750px;
+            width: 100%;
+            background: #4DB6AC;
+            border: 6px solid #222;
+            border-radius: 20px;
+            padding: 35px 30px;
+            box-shadow: 12px 12px 0 #222;
+            position: relative;
+        }
+        h1 {
+            font-size: 2.3rem;
+            color: #222;
+            text-align: center;
+            margin-bottom: 25px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            text-shadow: 4px 4px 0 #80CBC4;
+            line-height: 1.2;
+        }
+        .grid-container {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 25px;
+        }
+        .pixel-grid {
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            gap: 4px;
+            background: #222;
+            border: 5px solid #222;
+            border-radius: 10px;
+            padding: 5px;
+            box-shadow: 6px 6px 0 #222;
+            max-width: 400px;
+        }
+        .pixel-cell {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background: #FFF;
+            border-radius: 4px;
+            padding: 2px;
+        }
+        .pixel-cell input[type="range"] {
+            width: 30px;
+            height: 30px;
+            writing-mode: bt-lr;
+            -webkit-appearance: slider-vertical;
+            appearance: slider-vertical;
+            cursor: pointer;
+            background: #E0E0E0;
+            border-radius: 3px;
+            accent-color: #00695C;
+        }
+        .pixel-value {
+            font-size: 0.6rem;
+            font-weight: bold;
+            font-family: 'Courier New', monospace;
+            color: #222;
+            background: #B2DFDB;
+            border-radius: 3px;
+            padding: 1px 3px;
+            margin-top: 2px;
+            min-width: 18px;
+            text-align: center;
+        }
+        .controls {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .btn-group {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        .btn {
+            padding: 16px 35px;
+            font-size: 1.3rem;
+            font-family: 'Impact', 'Arial Black', sans-serif;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            border: 5px solid #222;
+            border-radius: 14px;
+            cursor: pointer;
+            transition: all 0.08s linear;
+        }
+        .btn-predict {
+            background: #00695C;
+            color: #FFF;
+            box-shadow: 8px 8px 0 #222;
+        }
+        .btn-predict:hover {
+            background: #004D40;
+            transform: translate(2px, 2px);
+            box-shadow: 6px 6px 0 #222;
+        }
+        .btn-predict:active {
+            transform: translate(6px, 6px);
+            box-shadow: 2px 2px 0 #222;
+        }
+        .btn-reset {
+            background: #FF8A65;
+            color: #222;
+            box-shadow: 8px 8px 0 #222;
+        }
+        .btn-reset:hover {
+            background: #E64A19;
+            color: #FFF;
+            transform: translate(2px, 2px);
+            box-shadow: 6px 6px 0 #222;
+        }
+        .btn-reset:active {
+            transform: translate(6px, 6px);
+            box-shadow: 2px 2px 0 #222;
+        }
+        .results-area {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        .result-card {
+            background: #B2DFDB;
+            border: 5px solid #222;
+            border-radius: 14px;
+            padding: 20px 15px;
+            box-shadow: 8px 8px 0 #222;
+            text-align: center;
+            display: none;
+        }
+        .result-card.show {
+            display: block;
+        }
+        .result-card h3 {
+            font-size: 1.1rem;
+            color: #222;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+        }
+        .result-digit {
+            font-size: 3.5rem;
+            font-weight: bold;
+            color: #222;
+            background: #FFF;
+            display: inline-block;
+            padding: 5px 25px;
+            border: 4px solid #222;
+            border-radius: 10px;
+            margin: 8px 0;
+        }
+        .result-confidence {
+            font-size: 1.2rem;
+            color: #222;
+            font-weight: bold;
+        }
+        .top3-list {
+            margin-top: 10px;
+            font-size: 0.85rem;
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            color: #222;
+        }
+        .error-box {
+            background: #FF5252;
+            border: 5px solid #222;
+            border-radius: 14px;
+            padding: 20px;
+            box-shadow: 8px 8px 0 #222;
+            text-align: center;
+            display: none;
+            margin-top: 15px;
+        }
+        .error-box.show {
+            display: block;
+        }
+        .error-box p {
+            font-size: 1.2rem;
+            color: #FFF;
+            font-weight: bold;
+        }
+        .spinner {
+            display: inline-block;
+            width: 30px;
+            height: 30px;
+            border: 5px solid #222;
+            border-top-color: #00695C;
+            border-radius: 50%;
+            animation: spin 0.6s linear infinite;
+            margin: 10px auto;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        .loading-text {
+            display: none;
+            text-align: center;
+            margin: 15px 0;
+        }
+        .loading-text.show {
+            display: block;
+        }
+        .loading-text p {
+            font-weight: bold;
+            font-size: 1.1rem;
+            color: #222;
+        }
+        .footer-note {
+            margin-top: 25px;
+            text-align: center;
+            font-size: 0.85rem;
+            color: #222;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            opacity: 0.7;
+        }
+        @media (max-width: 650px) {
+            .container { padding: 20px 15px; }
+            h1 { font-size: 1.7rem; }
+            .pixel-grid { max-width: 280px; }
+            .pixel-cell input[type="range"] { width: 22px; height: 22px; }
+            .results-area { grid-template-columns: 1fr; }
+            .btn { font-size: 1rem; padding: 14px 25px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔢 Handwritten<br>Digit Recognizer</h1>
+        
+        <div class="grid-container">
+            <div class="pixel-grid" id="pixelGrid">
+                <!-- 64 cells generated by JS -->
+            </div>
+        </div>
+        
+        <div class="controls">
+            <div class="btn-group">
+                <button class="btn btn-predict" id="predictBtn">🔮 Predict</button>
+                <button class="btn btn-reset" id="resetBtn">🔄 Clear</button>
+            </div>
+        </div>
+        
+        <div class="loading-text" id="loading">
+            <div class="spinner"></div>
+            <p>RECOGNIZING DIGIT...</p>
+        </div>
+        
+        <div class="error-box" id="errorBox">
+            <p>⚠️ <span id="errorMessage">Something went wrong!</span></p>
+        </div>
+        
+        <div class="results-area">
+            <div class="result-card" id="rfResult">
+                <h3>🌲 Random Forest</h3>
+                <div class="result-digit" id="rfDigit">-</div>
+                <div class="result-confidence" id="rfConfidence">0%</div>
+                <div class="top3-list" id="rfTop3"></div>
+            </div>
+            <div class="result-card" id="lrResult">
+                <h3>📈 Logistic Regression</h3>
+                <div class="result-digit" id="lrDigit">-</div>
+                <div class="result-confidence" id="lrConfidence">0%</div>
+                <div class="top3-list" id="lrTop3"></div>
+            </div>
+        </div>
+        
+        <div class="footer-note">
+            Draw a digit 0-9 in the 8×8 grid above
+        </div>
+    </div>
+
+    <script>
+        // Build the 8x8 grid
+        const pixelGrid = document.getElementById('pixelGrid');
+        const cellValues = [];
+        
+        for (let i = 0; i < 64; i++) {
+            const cell = document.createElement('div');
+            cell.className = 'pixel-cell';
+            
+            const input = document.createElement('input');
+            input.type = 'range';
+            input.min = 0;
+            input.max = 16;
+            input.value = 0;
+            input.step = 1;
+            input.dataset.index = i;
+            
+            const valueLabel = document.createElement('span');
+            valueLabel.className = 'pixel-value';
+            valueLabel.textContent = '0';
+            
+            input.addEventListener('input', () => {
+                valueLabel.textContent = input.value;
+            });
+            
+            cell.appendChild(input);
+            cell.appendChild(valueLabel);
+            pixelGrid.appendChild(cell);
+            
+            cellValues.push({
+                input: input,
+                label: valueLabel
+            });
+        }
+        
+        // Get pixel array from grid
+        function getPixels() {
+            return cellValues.map(cv => parseInt(cv.input.value, 10));
+        }
+        
+        // Reset grid to zeros
+        function resetGrid() {
+            cellValues.forEach(cv => {
+                cv.input.value = 0;
+                cv.label.textContent = '0';
+            });
+            document.getElementById('rfResult').classList.remove('show');
+            document.getElementById('lrResult').classList.remove('show');
+            document.getElementById('errorBox').classList.remove('show');
+        }
+        
+        // Format confidence
+        function formatConfidence(val) {
+            return (val * 100).toFixed(1) + '%';
+        }
+        
+        // Update result
+        function updateResults(data) {
+            // RF
+            const rfCard = document.getElementById('rfResult');
+            document.getElementById('rfDigit').textContent = data.random_forest.prediction;
+            document.getElementById('rfConfidence').textContent = formatConfidence(data.random_forest.confidence);
+            const rfTop3 = data.random_forest.top3.map(t => `${t.digit} (${formatConfidence(t.confidence)})`).join(' | ');
+            document.getElementById('rfTop3').textContent = 'Top 3: ' + rfTop3;
+            rfCard.classList.add('show');
+            
+            // LR
+            const lrCard = document.getElementById('lrResult');
+            document.getElementById('lrDigit').textContent = data.logistic_regression.prediction;
+            document.getElementById('lrConfidence').textContent = formatConfidence(data.logistic_regression.confidence);
+            const lrTop3 = data.logistic_regression.top3.map(t => `${t.digit} (${formatConfidence(t.confidence)})`).join(' | ');
+            document.getElementById('lrTop3').textContent = 'Top 3: ' + lrTop3;
+            lrCard.classList.add('show');
+        }
+        
+        // Predict
+        document.getElementById('predictBtn').addEventListener('click', async () => {
+            const pixels = getPixels();
+            const loading = document.getElementById('loading');
+            const errorBox = document.getElementById('errorBox');
+            const predictBtn = document.getElementById('predictBtn');
+            
+            loading.classList.add('show');
+            errorBox.classList.remove('show');
+            document.getElementById('rfResult').classList.remove('show');
+            document.getElementById('lrResult').classList.remove('show');
+            predictBtn.disabled = true;
+            predictBtn.textContent = 'Predicting...';
+            
+            try {
+                const response = await fetch('/predict-draw', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ pixels: pixels })
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+                
+                const data = await response.json();
+                loading.classList.remove('show');
+                updateResults(data);
+            } catch (err) {
+                loading.classList.remove('show');
+                document.getElementById('errorMessage').textContent = err.message || 'Failed to get prediction';
+                errorBox.classList.add('show');
+            } finally {
+                predictBtn.disabled = false;
+                predictBtn.textContent = '🔮 Predict';
+            }
+        });
+        
+        // Reset
+        document.getElementById('resetBtn').addEventListener('click', resetGrid);
+    </script>
+</body>
+</html>
