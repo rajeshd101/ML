@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>📉 Customer Churn Predictor</title>
+    <style>
+        /* Cartoon Brutalist Style - Red/Warning Theme */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            font-family: 'Impact', 'Arial Black', 'Franklin Gothic Heavy', sans-serif;
+            background: #FFEBEE;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            padding: 30px 15px;
+        }
+        .container {
+            max-width: 750px;
+            width: 100%;
+            background: #EF5350;
+            border: 6px solid #222;
+            border-radius: 20px;
+            padding: 35px 30px;
+            box-shadow: 12px 12px 0 #222;
+            position: relative;
+        }
+        h1 {
+            font-size: 2.2rem;
+            color: #222;
+            text-align: center;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            text-shadow: 4px 4px 0 #FFCDD2;
+            line-height: 1.2;
+        }
+        .form-section {
+            background: #FFCDD2;
+            border: 5px solid #222;
+            border-radius: 14px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 8px 8px 0 #222;
+        }
+        .section-title {
+            font-size: 1.2rem;
+            color: #222;
+            text-transform: uppercase;
+            margin-bottom: 15px;
+            letter-spacing: 1px;
+            border-bottom: 4px solid #222;
+            padding-bottom: 8px;
+        }
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+        .form-group {
+            background: #FFF;
+            border: 4px solid #222;
+            border-radius: 10px;
+            padding: 10px 12px;
+            box-shadow: 5px 5px 0 #222;
+        }
+        .form-group label {
+            display: block;
+            font-size: 0.8rem;
+            font-weight: bold;
+            color: #222;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .form-group select, .form-group input {
+            width: 100%;
+            padding: 8px 10px;
+            font-size: 0.95rem;
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            border: 3px solid #222;
+            border-radius: 8px;
+            background: #FFF;
+            color: #222;
+            outline: none;
+            transition: transform 0.1s;
+        }
+        .form-group select:focus, .form-group input:focus {
+            transform: scale(1.02);
+            background: #FFF8E1;
+        }
+        .full-width {
+            grid-column: 1 / -1;
+        }
+        .btn-predict {
+            width: 100%;
+            padding: 18px;
+            font-size: 1.5rem;
+            font-family: 'Impact', 'Arial Black', sans-serif;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            background: #D32F2F;
+            color: #FFF;
+            border: 5px solid #222;
+            border-radius: 14px;
+            cursor: pointer;
+            box-shadow: 8px 8px 0 #222;
+            transition: all 0.08s linear;
+            margin-bottom: 20px;
+        }
+        .btn-predict:hover {
+            background: #B71C1C;
+            transform: translate(2px, 2px);
+            box-shadow: 6px 6px 0 #222;
+        }
+        .btn-predict:active {
+            transform: translate(6px, 6px);
+            box-shadow: 2px 2px 0 #222;
+        }
+        .result-box {
+            background: #FFCDD2;
+            border: 5px solid #222;
+            border-radius: 14px;
+            padding: 25px 20px;
+            box-shadow: 8px 8px 0 #222;
+            text-align: center;
+            display: none;
+        }
+        .result-box.show {
+            display: block;
+        }
+        .result-text {
+            font-size: 2.2rem;
+            font-weight: bold;
+            color: #222;
+            margin-bottom: 10px;
+        }
+        .result-probability {
+            font-size: 1.5rem;
+            color: #222;
+            background: #FFF;
+            display: inline-block;
+            padding: 10px 25px;
+            border: 4px solid #222;
+            border-radius: 10px;
+            margin-top: 10px;
+        }
+        .result-detail {
+            margin-top: 12px;
+            font-size: 1rem;
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            color: #222;
+        }
+        .churn-warning {
+            color: #B71C1C;
+        }
+        .churn-safe {
+            color: #2E7D32;
+        }
+        .error-box {
+            background: #222;
+            border: 5px solid #FF5252;
+            border-radius: 14px;
+            padding: 20px;
+            box-shadow: 8px 8px 0 #222;
+            text-align: center;
+            display: none;
+            margin-top: 15px;
+        }
+        .error-box.show {
+            display: block;
+        }
+        .error-box p {
+            font-size: 1.2rem;
+            color: #FFF;
+            font-weight: bold;
+        }
+        .spinner {
+            display: inline-block;
+            width: 30px;
+            height: 30px;
+            border: 5px solid #FFCDD2;
+            border-top-color: #D32F2F;
+            border-radius: 50%;
+            animation: spin 0.6s linear infinite;
+            margin: 10px auto;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        .loading {
+            display: none;
+            text-align: center;
+            margin: 15px 0;
+        }
+        .loading.show {
+            display: block;
+        }
+        .loading p {
+            font-weight: bold;
+            font-size: 1.1rem;
+            color: #222;
+            margin-top: 5px;
+        }
+        .footer-note {
+            margin-top: 25px;
+            text-align: center;
+            font-size: 0.85rem;
+            color: #FFF;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            opacity: 0.8;
+        }
+        @media (max-width: 600px) {
+            .container { padding: 20px 15px; }
+            h1 { font-size: 1.7rem; }
+            .form-grid { grid-template-columns: 1fr; }
+            .form-section { padding: 15px; }
+            .btn-predict { font-size: 1.2rem; padding: 14px; }
+            .result-text { font-size: 1.6rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📉 Customer<br>Churn Predictor</h1>
+        
+        <form id="predictForm">
+            <!-- Numeric Fields -->
+            <div class="form-section">
+                <div class="section-title">📊 Account Info</div>
+                <div class="form-grid">
+                    {% for name, meta in numeric_fields.items() %}
+                    <div class="form-group full-width">
+                        <label for="{{ name }}">{{ meta['label'] }}</label>
+                        <input type="number" id="{{ name }}" name="{{ name }}" 
+                               step="any" value="{{ meta['default'] }}" 
+                               min="{{ meta['min'] }}" max="{{ meta['max'] }}" required>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            
+            <!-- Categorical Fields -->
+            <div class="form-section">
+                <div class="section-title">👤 Customer Profile</div>
+                <div class="form-grid">
+                    {% for name, meta in categorical_fields.items() %}
+                    {% if meta['type'] == 'select' %}
+                    <div class="form-group">
+                        <label for="{{ name }}">{{ meta['label'] }}</label>
+                        <select id="{{ name }}" name="{{ name }}">
+                            {% for label, value in meta['options'].items() %}
+                            <option value="{{ label }}" {% if label == meta['default'] %}selected{% endif %}>{{ label }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    {% elif meta['type'] == 'onehot' %}
+                    <div class="form-group">
+                        <label for="{{ name }}">{{ meta['label'] }}</label>
+                        <select id="{{ name }}" name="{{ name }}">
+                            {% for cat in meta['categories'] %}
+                            <option value="{{ cat }}" {% if cat == meta['default'] %}selected{% endif %}>{{ cat }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    {% endif %}
+                    {% endfor %}
+                </div>
+            </div>
+            
+            <button type="submit" class="btn-predict" id="predictBtn">
+                🔮 Predict Churn Risk
+            </button>
+        </form>
+        
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>ANALYZING CHURN RISK...</p>
+        </div>
+        
+        <div class="result-box" id="resultBox">
+            <div class="result-detail">Prediction:</div>
+            <div class="result-text" id="resultText">-</div>
+            <div class="result-probability" id="resultProb">0%</div>
+            <div class="result-detail" id="resultDetail"></div>
+        </div>
+        
+        <div class="error-box" id="errorBox">
+            <p>⚠️ <span id="errorMessage">Something went wrong!</span></p>
+        </div>
+        
+        <div class="footer-note">
+            Telco Customer Churn Prediction Model
+        </div>
+    </div>
+
+    <script>
+        const form = document.getElementById('predictForm');
+        const predictBtn = document.getElementById('predictBtn');
+        const loading = document.getElementById('loading');
+        const resultBox = document.getElementById('resultBox');
+        const resultText = document.getElementById('resultText');
+        const resultProb = document.getElementById('resultProb');
+        const resultDetail = document.getElementById('resultDetail');
+        const errorBox = document.getElementById('errorBox');
+        const errorMessage = document.getElementById('errorMessage');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            // Collect form data
+            const formData = new FormData(form);
+            const data = {};
+            formData.forEach((value, key) => {
+                data[key] = value;
+            });
+            
+            // Show loading, hide results
+            loading.classList.add('show');
+            resultBox.classList.remove('show');
+            errorBox.classList.remove('show');
+            predictBtn.disabled = true;
+            predictBtn.textContent = 'Predicting...';
+            
+            try {
+                const response = await fetch('/predict', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+                
+                const result = await response.json();
+                
+                loading.classList.remove('show');
+                
+                // Update result
+                resultText.textContent = result.result_text;
+                resultProb.textContent = result.probability_pct;
+                
+                if (result.prediction === 1) {
+                    resultText.className = 'result-text churn-warning';
+                    resultDetail.textContent = '⚠️ This customer has a high risk of churning.';
+                } else {
+                    resultText.className = 'result-text churn-safe';
+                    resultDetail.textContent = '✅ This customer is likely to stay.';
+                }
+                
+                resultBox.classList.add('show');
+            } catch (err) {
+                loading.classList.remove('show');
+                errorMessage.textContent = err.message || 'Failed to get prediction';
+                errorBox.classList.add('show');
+            } finally {
+                predictBtn.disabled = false;
+                predictBtn.textContent = '🔮 Predict Churn Risk';
+            }
+        });
+    </script>
+</body>
+</html>
