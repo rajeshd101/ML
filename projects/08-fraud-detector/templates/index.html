@@ -1,0 +1,164 @@
+<html>
+<head>
+  <title>Credit Card Fraud Detector</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Arial Black', 'Impact', sans-serif;
+      background: #2d3436;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+    .container {
+      max-width: 500px;
+      width: 100%;
+      background: #d63031;
+      border: 4px solid #000;
+      box-shadow: 6px 6px 0 #000;
+      padding: 30px;
+    }
+    h1 {
+      font-size: 28px;
+      text-align: center;
+      margin-bottom: 20px;
+      color: #fff;
+      text-shadow: 3px 3px 0 #000;
+    }
+    .form-group {
+      margin-bottom: 20px;
+    }
+    label {
+      display: block;
+      font-size: 18px;
+      font-weight: bold;
+      color: #fff;
+      margin-bottom: 5px;
+      text-shadow: 2px 2px 0 #000;
+    }
+    input[type="number"] {
+      width: 100%;
+      padding: 12px;
+      font-size: 18px;
+      border: 3px solid #000;
+      box-shadow: 4px 4px 0 #000;
+      font-family: 'Courier New', monospace;
+      font-weight: bold;
+    }
+    .note {
+      margin-top: 10px;
+      padding: 10px;
+      background: #ffeaa7;
+      border: 3px solid #000;
+      font-size: 14px;
+      font-family: Arial, sans-serif;
+      font-weight: normal;
+      color: #2d3436;
+    }
+    button {
+      width: 100%;
+      padding: 16px;
+      font-size: 22px;
+      font-weight: bold;
+      background: #000;
+      color: #fff;
+      border: 4px solid #000;
+      box-shadow: 4px 4px 0 #d63031;
+      cursor: pointer;
+      margin-top: 10px;
+      transition: transform 0.1s;
+    }
+    button:hover {
+      transform: translate(2px, 2px);
+      box-shadow: 2px 2px 0 #d63031;
+    }
+    button:active {
+      transform: translate(4px, 4px);
+      box-shadow: 0 0 0 #d63031;
+    }
+    .result {
+      margin-top: 24px;
+      padding: 20px;
+      background: #fff;
+      border: 4px solid #000;
+      box-shadow: 4px 4px 0 #000;
+      text-align: center;
+    }
+    .result h2 {
+      font-size: 28px;
+      margin-bottom: 10px;
+    }
+    .fraud {
+      color: #d63031;
+    }
+    .normal {
+      color: #00b894;
+    }
+    .result .prob {
+      font-size: 16px;
+      font-family: Arial, sans-serif;
+      font-weight: normal;
+      color: #636e72;
+      margin-top: 8px;
+    }
+    .error {
+      margin-top: 20px;
+      padding: 12px;
+      background: #fab1a0;
+      border: 4px solid #000;
+      color: #2d3436;
+      font-weight: bold;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>💳 Credit Card Fraud Detector</h1>
+    <form id="fraudForm">
+      <div class="form-group">
+        <label>Transaction Amount ($)</label>
+        <input type="number" id="amount" step="0.01" min="0" value="100.00" required>
+      </div>
+      <div class="note">
+        ⚡ For demo, other transaction features (V1-V28) are set to zero. 
+        In production, all 28 anonymized features would be used.
+      </div>
+      <button type="submit">CHECK TRANSACTION</button>
+    </form>
+    <div class="result" id="result" style="display:none;">
+      <h2 id="resultTitle"></h2>
+      <div class="prob" id="resultProb"></div>
+    </div>
+    <div class="error" id="error" style="display:none;"></div>
+    <script>
+      document.getElementById('fraudForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const amount = document.getElementById('amount').value;
+        const result = document.getElementById('result');
+        const error = document.getElementById('error');
+        result.style.display = 'none';
+        error.style.display = 'none';
+        try {
+          const res = await fetch('/predict', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({amount: parseFloat(amount)})
+          });
+          const data = await res.json();
+          if (data.error) { throw new Error(data.error); }
+          document.getElementById('resultTitle').textContent = data.is_fraud ? '🚨 FRAUD DETECTED' : '✅ Looks Normal';
+          document.getElementById('resultTitle').className = data.is_fraud ? 'fraud' : 'normal';
+          document.getElementById('resultProb').textContent = 'Fraud Probability: ' + data.probability + '%';
+          result.style.display = 'block';
+        } catch(err) {
+          error.textContent = 'Error: ' + err.message;
+          error.style.display = 'block';
+        }
+      });
+    </script>
+  </div>
+</body>
+</html>
