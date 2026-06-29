@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Insurance Claim Fraud Detector</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Segoe UI', system-ui, sans-serif; background: #f0f2f5; color: #1a1a2e; }
+    .header { background: linear-gradient(135deg, #1a1a2e, #16213e, #0f3460); color: white; padding: 2rem; text-align: center; }
+    .header h1 { font-size: 2rem; margin-bottom: 0.5rem; }
+    .header p { opacity: 0.8; font-size: 1.05rem; }
+    .container { max-width: 960px; margin: 2rem auto; padding: 0 1rem; }
+    .card { background: white; border-radius: 16px; padding: 2rem; box-shadow: 0 4px 24px rgba(0,0,0,0.08); margin-bottom: 1.5rem; }
+    .card h2 { color: #16213e; margin-bottom: 1.2rem; font-size: 1.4rem; border-bottom: 2px solid #e8e8f0; padding-bottom: 0.5rem; }
+    .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1.2rem; }
+    .field label { display: block; font-weight: 600; margin-bottom: 0.3rem; color: #444; font-size: 0.9rem; }
+    .field input, .field select, .field textarea { width: 100%; padding: 0.7rem; border: 2px solid #ddd; border-radius: 8px; font-size: 1rem; transition: border-color 0.2s; }
+    .field input:focus, .field select:focus, .field textarea:focus { border-color: #16213e; outline: none; }
+    .field textarea { resize: vertical; min-height: 80px; font-family: inherit; }
+    .btn { display: inline-block; background: linear-gradient(135deg, #16213e, #0f3460); color: white; border: none; padding: 0.9rem 2.5rem; font-size: 1.1rem; border-radius: 10px; cursor: pointer; margin-top: 1.5rem; width: 100%; font-weight: 600; transition: transform 0.1s, box-shadow 0.2s; }
+    .btn:hover { transform: translateY(-1px); box-shadow: 0 4px 16px rgba(15,52,96,0.3); }
+    .info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-top: 1rem; }
+    .info-item { background: #f8f8fc; padding: 1rem; border-radius: 10px; text-align: center; }
+    .info-item .label { font-size: 0.85rem; color: #666; margin-bottom: 0.3rem; }
+    .info-item .value { font-size: 1.5rem; font-weight: 700; color: #16213e; }
+    footer { text-align: center; padding: 2rem; color: #888; font-size: 0.85rem; }
+    .section-divider { border: none; border-top: 1px dashed #ddd; margin: 1.5rem 0; }
+    h3 { color: #0f3460; margin-bottom: 0.8rem; font-size: 1.1rem; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>&#x1F6E1;&#xFE0F; Insurance Claim Fraud Detector</h1>
+    <p>AI-powered real-time claim risk assessment engine</p>
+  </div>
+  <div class="container">
+    <form action="/assess" method="post" style="display:none;">
+      <input name="claim_id" id="f_claim_id" value="">
+    </form>
+    <div class="card">
+      <h2>&#x1F4D6; Claim Intake Form</h2>
+
+      <h3>&#x1F465; Policyholder Information</h3>
+      <div class="form-grid">
+        <div class="field"><label>Claim ID</label><input name="claim_id" type="text" value="CLM-007892"></div>
+        <div class="field"><label>Customer Age</label><input name="customer_age" type="number" value="38" min="18" max="85"></div>
+        <div class="field"><label>Years with Company</label><input name="years_with_company" type="number" value="6" min="0" max="40" step="0.5">
+      </div>
+
+      <hr class="section-divider">
+      <h3>&#x1F3E2; Policy & Claim Details</h3>
+      <div class="form-grid">
+        <div class="field"><label>Policy Type</label>
+          <select name="policy_type" id="f_policy" onchange="updateClaimTypes()">
+            <option value="auto">Auto Insurance</option>
+            <option value="home">Home Insurance</option>
+            <option value="health">Health Insurance</option>
+            <option value="life">Life Insurance</option>
+            <option value="commercial">Commercial Lines</option>
+          </select></div>
+        <div class="field"><label>Claim Type</label>
+          <select name="claim_type" id="f_claimtype">
+            <option value="collision">Collision</option>
+            <option value="theft">Theft</option>
+            <option value="weather">Weather Damage</option>
+            <option value="liability">Liability</option>
+            <option value="medical">Medical</option>
+            <option value="property_damage">Property Damage</option>
+            <option value="business_interruption">Business Interruption</option>
+            <option value="warranty">Warranty Claim</option>
+          </select></div>
+        <div class="field"><label>Claim Amount ($)</label><input name="claim_amount" type="number" value="15000" min="100" step="100"></div>
+        <div class="field"><label>Coverage Limit ($)</label><input name="coverage_limit" type="number" value="50000" min="1000" step="1000"></div>
+      </div>
+
+      <hr class="section-divider">
+      <h3>&#x1F4C5; Incident & Filing Details</h3>
+      <div class="form-grid">
+        <div class="field"><label>Hours Since Incident</label><input name="hours_since_incident" type="number" value="48" min="0"></div>
+        <div class="field"><label>Filing Hour (24h)</label><input name="filing_hour" type="number" value="14" min="0" max="23"></div>
+        <div class="field"><label>Filed on Weekend?</label>
+          <select name="is_weekend">
+            <option value="0">No</option>
+            <option value="1">Yes</option>
+          </select></div>
+        <div class="field"><label>Prior Claims (last 1 year)</label><input name="prior_claims_1yr" type="number" value="0" min="0"></div>
+        <div class="field"><label>Prior Claims (last 3 years)</label><input name="prior_claims_3yr" type="number" value="1" min="0"></div>
+      </div>
+
+      <hr class="section-divider">
+      <h3>&#x1F4CA; Additional Risk Indicators</h3>
+      <div class="form-grid">
+        <div class="field"><label>Geographic Risk Score</label><input name="geo_risk_score" type="number" value="0.5" min="0" max="1" step="0.1"></div>
+        <div class="field"><label>Police Report Filed?</label>
+          <select name="has_police_report"><option value="1">Yes</option><option value="0">No</option></select></div>
+        <div class="field"><label>Medical Report Attached?</label>
+          <select name="has_medical_report"><option value="1">Yes</option><option value="0">No</option></select></div>
+        <div class="field"><label>Repair Shop Recommended?</label>
+          <select name="repair_shop_recommended"><option value="1">Yes</option><option value="0">No</option></select></div>
+        <div class="field" style="grid-column: 1 / -1;"><label>Claim Description / Notes</label>
+          <textarea name="claim_description" placeholder="Enter claim description, incident details...">Vehicle collision occurred at intersection. Claimant states they were proceeding through green light when another vehicle ran red signal. No police report filed at scene. Requesting repair estimate.</textarea></div>
+      </div>
+
+      <button type="submit" class="btn">&#x1F50D; Analyze Claim</button>
+    </div>
+
+    <div class="card">
+      <h2>&#x1F3DB; How Fraud Detection Works</h2>
+      <p style="line-height:1.7; color:#555;">This system uses an ensemble of <strong>Gradient Boosting classifiers</strong> and <strong>Isolation Forest anomaly detection</strong> trained on 15,000 synthetic claims with known fraud patterns. It evaluates 27 risk features across multiple dimensions to produce a comprehensive fraud probability score.</p>
+      <div class="info-grid">
+        <div class="info-item"><div class="label">Model Ensemble</div><div class="value" style="font-size:1rem;">GB + Isolation Forest</div></div>
+        <div class="info-item"><div class="label">Risk Features</div><div class="value" style="font-size:1.2rem;">27</div></div>
+        <div class="info-item"><div class="label">Training Data</div><div class="value" style="font-size:1.2rem;">15,000 claims</div></div>
+        <div class="info-item"><div class="label">Fraud Patterns</div><div class="value" style="font-size:1rem;">6 known patterns</div></div>
+      </div>
+    </div>
+  </div>
+  <footer>Simulated model for educational purposes only. Not a real fraud detection system.</footer>
+
+  <script>
+    function updateClaimTypes() {
+      const policy = document.getElementById('f_policy').value;
+      const types = {
+        auto: ['collision','theft','weather','liability','medical','property_damage'],
+        home: ['weather','property_damage','theft','liability','warranty'],
+        health: ['medical','liability','warranty'],
+        life: ['medical','liability'],
+        commercial: ['business_interruption','property_damage','liability','weather']
+      };
+      const sel = document.getElementById('f_claimtype');
+      sel.innerHTML = '';
+      (types[policy] || types.auto).forEach(t => {
+        const o = document.createElement('option');
+        o.value = t; o.textContent = t.replace(/_/g, ' ');
+        sel.appendChild(o);
+      });
+    }
+  </script>
+</body>
+</html>

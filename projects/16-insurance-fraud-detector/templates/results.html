@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fraud Assessment Results</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Segoe UI', system-ui, sans-serif; background: #f0f2f5; color: #1a1a2e; }
+    .header { background: linear-gradient(135deg, #1a1a2e, #16213e, #0f3460); color: white; padding: 2rem; text-align: center; }
+    .container { max-width: 900px; margin: 2rem auto; padding: 0 1rem; }
+    .card { background: white; border-radius: 16px; padding: 2rem; box-shadow: 0 4px 24px rgba(0,0,0,0.08); margin-bottom: 1.5rem; }
+    .card h2 { color: #16213e; margin-bottom: 1rem; font-size: 1.3rem; border-bottom: 2px solid #e8e8f0; padding-bottom: 0.5rem; }
+    .verdict { text-align: center; padding: 2rem; border-radius: 16px; margin-bottom: 1.5rem; color: white; }
+    .verdict h1 { font-size: 1.8rem; margin-bottom: 0.3rem; }
+    .verdict p { font-size: 1.05rem; opacity: 0.9; }
+    .score-ring { width: 140px; height: 140px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 1rem auto; font-size: 2.2rem; font-weight: 700; color: white; position: relative; }
+    .score-ring::after { content: ''; position: absolute; inset: 8px; border-radius: 50%; background: rgba(255,255,255,0.15); }
+    .low-risk { background: conic-gradient(#2d6a4f var(--pct), #b7e4c7 var(--pct)); }
+    .med-risk { background: conic-gradient(#e09f3e var(--pct), #fdd8b5 var(--pct)); }
+    .high-risk { background: conic-gradient(#e63946 var(--pct), #fcaaaa var(--pct)); }
+    .crit-risk { background: conic-gradient(#9b2226 var(--pct), #f8a5a5 var(--pct)); }
+    .info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; margin: 1rem 0; }
+    .info-item { background: #f8f8fc; padding: 1rem; border-radius: 10px; text-align: center; }
+    .info-item .label { font-size: 0.85rem; color: #666; margin-bottom: 0.3rem; }
+    .info-item .value { font-size: 1.3rem; font-weight: 700; color: #16213e; }
+    .factor-row { display: flex; align-items: center; justify-content: space-between; padding: 0.7rem 0; border-bottom: 1px solid #f0f0f5; }
+    .factor-row:last-child { border-bottom: none; }
+    .factor-name { font-weight: 600; color: #444; min-width: 220px; }
+    .factor-val { font-family: monospace; background: #f8f8fc; padding: 0.3rem 0.7rem; border-radius: 6px; font-size: 0.95rem; }
+    .factor-weight { color: #888; font-size: 0.85rem; min-width: 60px; text-align: right; }
+    .back-btn { display: inline-block; background: #16213e; color: white; padding: 0.7rem 1.5rem; border-radius: 8px; text-decoration: none; margin-top: 1rem; font-weight: 600; }
+    .back-btn:hover { opacity: 0.9; }
+    footer { text-align: center; padding: 2rem; color: #888; font-size: 0.85rem; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>&#x1F6E1;&#xFE0F; Claim Risk Assessment Results</h1>
+    <p>Claim ID: {{ claim_id }}</p>
+  </div>
+  <div class="container">
+
+    <div class="verdict" style="background: {{ risk_color }};">
+      <h1>{{ risk_label }}</h1>
+      <p>Fraud Probability: {{ fraud_prob }}%</p>
+    </div>
+
+    <div class="card">
+      <h2>&#x1F4C8; Fraud Risk Score</h2>
+      <div class="score-ring {{ 'low-risk' if risk_level=='low' else 'med-risk' if risk_level=='medium' else 'high-risk' if risk_level=='high' else 'crit-risk' }}" style="--pct: {{ fraud_prob }}%;">
+        {{ fraud_prob }}%
+      </div>
+
+      <div class="info-grid">
+        <div class="info-item"><div class="label">GB Model</div><div class="value">{{ gb_fraud_score }}%</div></div>
+        <div class="info-item"><div class="label">Anomaly Score</div><div class="value">{{ iso_anomaly }}%</div></div>
+        <div class="info-item"><div class="label">Risk Category</div><div class="value" style="text-transform:capitalize;">{{ risk_level }}</div></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>&#x1F4CA; Top Risk Factors</h2>
+      {% for name, val, weight in top_factors %}
+      <div class="factor-row">
+        <span class="factor-name">{{ name }}</span>
+        <span class="factor-val">{{ val }}</span>
+        <span class="factor-weight">{{ "%.4f"|format(weight) }}</span>
+      </div>
+      {% endfor %}
+    </div>
+
+    <a href="/" class="back-btn">&#x2190; New Assessment</a>
+  </div>
+  <footer>Simulated model for educational purposes only. Not a real fraud detection system.</footer>
+</body>
+</html>

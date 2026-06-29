@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Risk Assessment Results</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Segoe UI', system-ui, sans-serif; background: #f0f2f5; color: #1a1a2e; }
+    .header { background: linear-gradient(135deg, #0f0c29, #302b63, #24243e); color: white; padding: 2rem; text-align: center; }
+    .container { max-width: 900px; margin: 2rem auto; padding: 0 1rem; }
+    .card { background: white; border-radius: 16px; padding: 2rem; box-shadow: 0 4px 24px rgba(0,0,0,0.08); margin-bottom: 1.5rem; }
+    .card h2 { color: #302b63; margin-bottom: 1rem; font-size: 1.3rem; border-bottom: 2px solid #e8e8f0; padding-bottom: 0.5rem; }
+    .verdict { text-align: center; padding: 2rem; border-radius: 16px; margin-bottom: 1.5rem; }
+    .verdict.approved { background: linear-gradient(135deg, #d8f3dc, #b7e4c7); }
+    .verdict.denied { background: linear-gradient(135deg, #fde2e2, #fcaaaa); }
+    .verdict h1 { font-size: 2rem; margin-bottom: 0.5rem; }
+    .score-circle { width: 160px; height: 160px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 1rem auto; font-size: 2.5rem; font-weight: 700; color: white; }
+    .score-good { background: linear-gradient(135deg, #2d6a4f, #40916c); }
+    .score-bad { background: linear-gradient(135deg, #9b2226, #ae2012); }
+    .info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; margin: 1rem 0; }
+    .info-item { background: #f8f8fc; padding: 1rem; border-radius: 10px; text-align: center; }
+    .info-item .label { font-size: 0.85rem; color: #666; margin-bottom: 0.3rem; }
+    .info-item .value { font-size: 1.3rem; font-weight: 700; color: #302b63; }
+    .prob-bar { height: 12px; border-radius: 6px; background: #e0e0e0; margin-top: 0.5rem; overflow: hidden; display: flex; }
+    .prob-approved { height: 100%; background: linear-gradient(90deg, #40916c, #52b788); transition: width 0.5s; }
+    .prob-default { height: 100%; background: linear-gradient(90deg, #e63946, #f4a261); transition: width 0.5s; }
+    .back-btn { display: inline-block; background: #302b63; color: white; padding: 0.7rem 1.5rem; border-radius: 8px; text-decoration: none; margin-top: 1rem; font-weight: 600; }
+    .back-btn:hover { opacity: 0.9; }
+    footer { text-align: center; padding: 2rem; color: #888; font-size: 0.85rem; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>&#x1F3E6; Credit Risk Assessment</h1>
+    <p>Your personalized risk analysis is ready</p>
+  </div>
+  <div class="container">
+    <div class="verdict {{ 'approved' if approved else 'denied' }}">
+      <h1>{{ 'Approved &#x2705;' if approved else 'Declined &#x1F6AB;' }}</h1>
+      <p style="font-size:1.1rem;">{{ recommendation }}</p>
+    </div>
+
+    <div class="card">
+      <h2>&#x1F4C8; Risk Score</h2>
+      <div class="score-circle {{ 'score-good' if approved else 'score-bad' }}">
+        {{ risk_score }}
+      </div>
+      <p style="text-align:center; color:#666;">Estimated credit score (simulated)</p>
+
+      <div style="margin-top: 1.5rem;">
+        <p style="font-weight:600;">Default Probability</p>
+        <div class="prob-bar">
+          <div class="prob-approved" style="width: {{ 100 - default_prob }}%"></div>
+          <div class="prob-default" style="width: {{ default_prob }}%"></div>
+        </div>
+        <p style="text-align:center; margin-top:0.5rem;">
+          <strong>{{ default_prob }}%</strong> probability of loan default
+        </p>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>&#x1F4CB; Assessment Details</h2>
+      <div class="info-grid">
+        <div class="info-item"><div class="label">Credit Band</div><div class="value">{{ credit_band | capitalize }}</div></div>
+        <div class="info-item"><div class="label">DTI Bracket</div><div class="value">{{ dti_bracket }}</div></div>
+        <div class="info-item"><div class="label">GB Model Prob</div><div class="value">{{ gb_proba }}%</div></div>
+        <div class="info-item"><div class="label">RF Model Prob</div><div class="value">{{ rf_proba }}%</div></div>
+      </div>
+    </div>
+
+    <a href="/" class="back-btn">&#x2190; New Assessment</a>
+  </div>
+  <footer>Simulated model for educational purposes only. Not a real credit decision.</footer>
+</body>
+</html>
