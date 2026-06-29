@@ -7,3 +7,7 @@ __pycache__/
 .DS_Store
 *.swp
 *.swo
+
+# Model files (regenerate by running train.py)
+*.pkl
+*.joblib
